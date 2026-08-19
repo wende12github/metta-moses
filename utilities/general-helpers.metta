@@ -924,7 +924,8 @@
 (= (coll.length (mkInst $list)) (coll.length $list))
 (= (coll.length (mkSInstSet $list)) (coll.length $list))
 (= (coll.length (mkBScore $list)) (coll.length $list))
-(= (coll.length (mkDeme $rep (mkSInstSet $instList) $demeId)) (coll.length $instList))
+; (= (coll.length (mkDeme $rep (mkSInstSet $instList) $demeId)) (coll.length $instList))
+(= (coll.length $demeSpace) (if (is-space $demeSpace) (let (mkSInstSet $instList) (match $demeSpace (mkSInstSet $instList) (mkSInstSet $instList)) (coll.length $instList)) (Error $demeSpace "Unsupported coll.length")))
 
 ;;
 ;; coll.append — append/insert one element into supported collections
@@ -956,8 +957,16 @@
 (= (coll.append (ConsOMS $x $xs) $el) (eval (OMS.insert $el (ConsOMS $x $xs))))
 
 ;; Deme — append ScoredInstance to its InstanceSet
-(= (coll.append (mkDeme $rep (mkSInstSet $list) $demeId) $el)
-   (mkDeme $rep (mkSInstSet (coll.append $list $el)) $demeId))
+; (= (coll.append (mkDeme $rep (mkSInstSet $list) $demeId) $el)
+;    (mkDeme $rep (mkSInstSet (coll.append $list $el)) $demeId))
+
+(= (coll.append $demeSpace $el)
+   (if (is-space $demeSpace)
+       (let (mkSInstSet $list) (match $demeSpace (mkSInstSet $list) (mkSInstSet $list))
+         (let* (($_ (remove-atom $demeSpace (mkSInstSet $list)))
+                ($_ (add-atom $demeSpace (mkSInstSet (coll.append $list $el)))))
+           $demeSpace))
+       (Error $demeSpace "Unsupported coll.append")))
 
 ;; coll.insert — alias to coll.append
 (: coll.insert (-> $coll $el $coll))
@@ -1014,8 +1023,16 @@
    (if (== $x $el) $xs (cons $x (coll.remove $xs $el))))
 
 ;; Deme — remove one ScoredInstance from its InstanceSet
-(= (coll.remove (mkDeme $rep (mkSInstSet $list) $demeId) $el)
-   (mkDeme $rep (mkSInstSet (coll.remove $list $el)) $demeId))
+; (= (coll.remove (mkDeme $rep (mkSInstSet $list) $demeId) $el)
+;    (mkDeme $rep (mkSInstSet (coll.remove $list $el)) $demeId))
+
+(= (coll.remove $demeSpace $el)
+   (if (is-space $demeSpace)
+       (let (mkSInstSet $list) (match $demeSpace (mkSInstSet $list) (mkSInstSet $list))
+         (let* (($_ (remove-atom $demeSpace (mkSInstSet $list)))
+                ($_ (add-atom $demeSpace (mkSInstSet (coll.remove $list $el)))))
+           $demeSpace))
+       (Error $demeSpace "Unsupported coll.remove")))
 
 ;;
 ;; coll.contains — membership/lookup presence
@@ -1043,7 +1060,8 @@
 (= (coll.contains (mkInst $list) $el) (coll.contains $list $el))
 (= (coll.contains (mkSInstSet $list) $el) (coll.contains $list $el))
 (= (coll.contains (mkBScore $list) $el) (coll.contains $list $el))
-(= (coll.contains (mkDeme $rep (mkSInstSet $instList) $demeId) $el) (coll.contains $instList $el))
+; (= (coll.contains (mkDeme $rep (mkSInstSet $instList) $demeId) $el) (coll.contains $instList $el))
+(= (coll.contains $demeSpace $el) (if (is-space $demeSpace) (let (mkSInstSet $instList) (match $demeSpace (mkSInstSet $instList) (mkSInstSet $instList)) (coll.contains $instList $el)) False))
 
 ;;
 ;; coll.getByIdx — index-based access where supported
@@ -1062,7 +1080,8 @@
 (= (coll.getByIdx (mkInst $list) $i) (coll.getByIdx $list $i))
 (= (coll.getByIdx (mkSInstSet $list) $i) (coll.getByIdx $list $i))
 (= (coll.getByIdx (mkBScore $list) $i) (coll.getByIdx $list $i))
-(= (coll.getByIdx (mkDeme $rep (mkSInstSet $instList) $demeId) $i) (coll.getByIdx $instList $i))
+; (= (coll.getByIdx (mkDeme $rep (mkSInstSet $instList) $demeId) $i) (coll.getByIdx $instList $i))
+(= (coll.getByIdx $demeSpace $i) (if (is-space $demeSpace) (let (mkSInstSet $instList) (match $demeSpace (mkSInstSet $instList) (mkSInstSet $instList)) (coll.getByIdx $instList $i)) (Error $i "Index out of range")))
 
 ;;
 ;; Map/MultiMap key-centric APIs
@@ -1114,7 +1133,15 @@
 (= (coll.removeByIdx (mkInst $list) $i) (mkInst (coll.removeByIdx $list $i)))
 (= (coll.removeByIdx (mkSInstSet $list) $i) (mkSInstSet (coll.removeByIdx $list $i)))
 (= (coll.removeByIdx (mkBScore $list) $i) (mkBScore (coll.removeByIdx $list $i)))
-(= (coll.removeByIdx (mkDeme $rep (mkSInstSet $list) $demeId) $i) (mkDeme $rep (mkSInstSet (coll.removeByIdx $list $i)) $demeId))
+; (= (coll.removeByIdx (mkDeme $rep (mkSInstSet $list) $demeId) $i) (mkDeme $rep (mkSInstSet (coll.removeByIdx $list $i)) $demeId))
+
+(= (coll.removeByIdx $demeSpace $i)
+   (if (is-space $demeSpace)
+       (let (mkSInstSet $list) (match $demeSpace (mkSInstSet $list) (mkSInstSet $list))
+         (let* (($_ (remove-atom $demeSpace (mkSInstSet $list)))
+                ($_ (add-atom $demeSpace (mkSInstSet (coll.removeByIdx $list $i)))))
+           $demeSpace))
+       (Error "empty/idx out of range")))
 
 ;;
 ;; OS-specific helpers

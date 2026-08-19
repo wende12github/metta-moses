@@ -588,9 +588,9 @@
 (= (instSet2) (mkSInstSet 
        (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ())))   
 (= (demeId2) (mkDemeId "2"))                        
-!(add-atom &deme2 (rep1))
-!(add-atom &deme2 (instSet1))
-!(add-atom &deme2 (demeId1))
+!(add-atom &deme2 (rep2))
+!(add-atom &deme2 (instSet2))
+!(add-atom &deme2 (demeId2))
 
 !(assertEqual (demeToTrees 
      (mkRep 
@@ -609,7 +609,7 @@
        (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ()))
       (mkDemeId "2")
               1) 
-              (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playblock) ()) ()))) (mkDemeId "1") (mkCscore 5.0 2 0.571 0.0 4.429) (mkBScore (cons -1.0 ()))) ()))
+              (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playside) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))
 
 ;; mergeDemes (strategy variant): original positional args
 ;;   5 2 0 1   1 ()   3 0.004 1000

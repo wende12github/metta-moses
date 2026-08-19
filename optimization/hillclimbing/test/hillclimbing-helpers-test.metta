@@ -1,4 +1,4 @@
-!(import! &self ../../../deme/demeSpaceName.py)
+; !(import! &self ../../../deme/demeSpaceName.py)
 !(import! &self ../../../utilities/general-helpers)
 !(import! &self ../../../parameters/registry)
 !(import! &self ../../../parameters/defaults)
@@ -181,11 +181,16 @@
 ; (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
+!(add-atom &deme1 (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) ( (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))))
+!(add-atom &deme1 (mkSInstSet ()))
+!(add-atom &deme1 (mkDemeId "1"))
+
 !(hillclimbing test ----------)
 !(assertEqual
    (let*
      (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
+       (($instance $returnedSpace $state) (hillClimbing &deme1 (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
+       ((mkSInstSet $instSet) (match &deme1 (mkSInstSet $instSet) (mkSInstSet $instSet)))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
@@ -195,7 +200,8 @@
 !(assertEqual
    (let*
      (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet ()) (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
+       (($instance $returnedSpace $state) (hillClimbing &deme1 (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
+       ((mkSInstSet $instSet) (match &deme1 (mkSInstSet $instSet) (mkSInstSet $instSet)))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
@@ -207,7 +213,8 @@
 !(assertEqual 
   (let* 
   (
-    (($instance (mkDeme $rep (mkSInstSet $sInstSet) $demeId) $state) (hillClimbing (deme) (table1) (mkInst (cons 2 (cons 2 ()))) (mkParams applyComplexityBasedScore ())))
+    (($instance $returnedSpace $state) (hillClimbing &deme1 (table1) (mkInst (cons 2 (cons 2 ()))) (mkParams applyComplexityBasedScore ())))
+    ((mkSInstSet $sInstSet) (match &deme1 (mkSInstSet $sInstSet) (mkSInstSet $sInstSet)))
     ((mkSInst (mkPair $bestInst $bestScore)) (List.foldl hillScoreHelper (mkSInst (mkPair (mkInst (2 2)) (mkCscore -4 2 1.0 0.0 -5.0))) $sInstSet))
   )
   (or (== $instance $bestInst) (<= (- (getPenScore $bestScore) -5) 0.5))

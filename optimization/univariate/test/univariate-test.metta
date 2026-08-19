@@ -74,9 +74,13 @@
 ;; executed recursively multiple times.
 ;; Therefore, until the transform function is fixed, this test case remains commented out.
 
+!(add-atom &deme1 (mkRep (mkKbMap (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))))
+!(add-atom &deme1 (mkSInstSet ()))
+!(add-atom &deme1 (mkDemeId "1"))
+
 !(assertEqual
-    (let (mkDeme $rep (mkSInstSet $instSet) $id) 
-         (univariate (deme) (table1) 2.0 1 0.5 0.5 (mkCscore -0.1 2 0.1 0.1 3))          
-         (== (List.length $instSet) 7)) True)
+    (let $space (univariate &deme1 (table1) 2.0 1 0.5 0.5 (mkCscore -0.1 2 0.1 0.1 3))
+      (let (mkSInstSet $instSet) (match &deme1 (mkSInstSet $instSet) (mkSInstSet $instSet))
+        (== (List.length $instSet) 7))) True)
 
 

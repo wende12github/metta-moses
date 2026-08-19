@@ -77,7 +77,7 @@
          ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
          ($gameContext ($nGames $complexityRatio $targetCScore))
       )
-      (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
+      (map-atom $demes $deme (expandDemeSpaceHelper $deme $gameContext $optimize))))
 
 ;; Unified helper for both Boolean and Strategy domains
 ;; Optimizes each deme in the list using the provided optimizer and context

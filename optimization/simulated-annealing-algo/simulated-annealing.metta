@@ -111,21 +111,21 @@
               ($_ (println! (Crossover: $xOver)))
               ;; Generate a new instance using crossover
               
-              (((mkDeme $rep $updatedInstSet $id) $newInstances) (case ($xOver $size)
-                                                                   (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
-                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
-                                                                ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
-                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d)
-                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
-                                                                ((False $notEmpty) 
-                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d)
-                                                                        ;; (trace! ("Result: " $result) )))
-                                                                        $result))
-                                                              )
-                                                                    ))
+              ($rep (let $return (match $POASet (mkRep $knmp $tree) (mkRep $knmp $tree)) (if (== $return (mkRep () ())) () $return)))
+              ($id (let $returnn (match $POASet (mkDemeId $dmid) (mkDemeId $dmid)) (if (== $returnn (mkDemeId ())) () $returnn)))
+              (($updatedInstSet $newInstances) (case ($xOver $size)
+                                                   (
+                                                     ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
+                                                                   ($updatedInstSet $newInstances)))
+                                                     ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
+                                                     ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d)
+                                                                   ($updatedInstSet $newInstances)))
+                                                     ((False $notEmpty) 
+                                                             (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d)
+                                                             $result))
+                                                   )
+                                                        ))
               ($_ (println! (Newinstances: $updatedInstSet)))
-              ;; ($_ (println! ""))
               
               ($scorerType (if (== () $FsScorerType) mi $FsScorerType))
               (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive) (if (== () $FsHyperParams) (() () () () ()) $FsHyperParams))
@@ -139,9 +139,13 @@
                                                                   )
                                                 ($transformFunction $updatedInstSet $rep $id $iTable $rowOCoeff)))
 
-              ($updatedPOASet (if (or (== $rep ()) (== $id ())) 
-                          (mkSInstSet $scoredInstances) 
-                          (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
+              ($_ (if (is-space $POASet)
+                      (let* (($old (match $POASet (mkSInstSet $insts) (mkSInstSet $insts)))
+                             ($_ (remove-atom $POASet $old))
+                             ($_ (add-atom $POASet (mkSInstSet $scoredInstances))))
+                        ())
+                      ()))
+              ($updatedPOASet $POASet)
         
 
               ($_ (println! (Scored instances: $scoredInstances)))

@@ -64,9 +64,9 @@
 
 !(py-call (random.seed 42))
 
-
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
-(= (demes) (cons (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")) ()))
+!(add-atom &deme1 (mkRep (mkKbMap (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))))
+!(add-atom &deme1 (mkSInstSet ()))
+!(add-atom &deme1 (mkDemeId "1"))
 
 (= (table1) (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
@@ -81,41 +81,42 @@
                          (cons (cons False (cons True (cons False ())))
                          (cons (cons True (cons True (cons True ()))) ()))))
                          (cons A (cons B (cons O ())))))
-                      
-;;(: isScored (-> (ScoredInstance Cscore) Bool))
+
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 !(simulated annealing test ----------)
 
 !(assertEqual 
    (let*
       (
-          (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
-           ($instanceCount (List.length $instSet))
-           ($scoredElems (List.map isScored $instSet))
-      )
-      ((>= $instanceCount 1) (List.any $scoredElems)) 
-   )
-(True True)
-)
-!(assertEqual 
-   (let*
-      (
-           (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet ()) (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
-           ($instanceCount (List.length $instSet))
-           ($scoredElems (List.map isScored $instSet))
+          (($instance $returnedSpace $state) (simulated-annealing &deme1 (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
+          ((mkSInstSet $instSet) (match &deme1 (mkSInstSet $instSet) (mkSInstSet $instSet)))
+          ($instanceCount (List.length $instSet))
+          ($scoredElems (List.map isScored $instSet))
       )
       ((>= $instanceCount 1) (List.any $scoredElems)) 
    )
 (True True)
 )
 
+!(assertEqual 
+   (let*
+      (
+          (($instance $returnedSpace $state) (simulated-annealing &deme1 (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
+          ((mkSInstSet $instSet) (match &deme1 (mkSInstSet $instSet) (mkSInstSet $instSet)))
+          ($instanceCount (List.length $instSet))
+          ($scoredElems (List.map isScored $instSet))
+      )
+      ((>= $instanceCount 1) (List.any $scoredElems)) 
+   )
+(True True)
+)
 
 ;; Reproducibility test 
 !(assertEqual 
     (let*
         (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
-                (simulated-annealing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
+            (($instance $returnedSpace $state) 
+                (simulated-annealing &deme1 (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
            (($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i) $state)
         )
         ((== $bestSscore (mkCscore -1 1 0.5 0.0 -1.5))(== $bestScore -1.5))

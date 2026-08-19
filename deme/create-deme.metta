@@ -34,7 +34,7 @@
                   ($reps (createRepresentation $nDeme $exemplar))
                   ;; ($_ (println! ("done making representations ..." $reps)))
             )  
-            (loopCreateDeme $demeIds $reps ())
+            (loopCreateDemeSpace $demeIds $reps ())
       ) 
 )
 

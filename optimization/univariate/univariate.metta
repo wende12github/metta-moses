@@ -285,14 +285,30 @@ $sortedSInstSet
 ;   $bestCscore – current best score (initially worst)
 ; Returns: A new deme containing the optimized and sorted instance set.
 ; (: univariateOptimize (-> Deme (ITable $a) Number Number Number Number Cscore Cscore Deme))
-(= (univariateOptimize (mkDeme $rep $instSet $id) $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore $bestCscore)
-(let*
-   (
-    ($sInstSet (transform $instSet $rep $id $itable $complexityRatio))
-    ($sortedSInstSet (sortDeme $sInstSet))
-    ($finalInstSet (univariateMainLoop $sortedSInstSet 0 $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $id $itable $complexityRatio))
-   )
-   (mkDeme $rep $finalInstSet $id)))
+; (= (univariateOptimize (mkDeme $rep $instSet $id) $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore $bestCscore)
+; (let*
+;    (
+;     ($sInstSet (transform $instSet $rep $id $itable $complexityRatio))
+;     ($sortedSInstSet (sortDeme $sInstSet))
+;     ($finalInstSet (univariateMainLoop $sortedSInstSet 0 $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $id $itable $complexityRatio))
+;    )
+;    (mkDeme $rep $finalInstSet $id)))
+
+(= (univariateOptimize $demeSpace $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore $bestCscore)
+   (if (is-space $demeSpace)
+       (let*
+          (
+           ($rep (match $demeSpace (mkRep $kbmp $tree) (mkRep $kbmp $tree)))
+           ($id (match $demeSpace (mkDemeId $dmid) (mkDemeId $dmid)))
+           ($instSet (match $demeSpace (mkSInstSet $insts) (mkSInstSet $insts)))
+           ($sInstSet (transform $instSet $rep $id $itable $complexityRatio))
+           ($sortedSInstSet (sortDeme $sInstSet))
+           ($finalInstSet (univariateMainLoop $sortedSInstSet 0 $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $id $itable $complexityRatio))
+           ($_ (remove-atom $demeSpace $instSet))
+           ($_ (add-atom $demeSpace $finalInstSet))
+          )
+          $demeSpace)
+       (Error $demeSpace "Invalid Deme")))
 
 ;; Initializes and starts the univariate optimization process.
 ;; Computes generation and population parameters, creates a random initial population,
@@ -308,15 +324,30 @@ $sortedSInstSet
 ;; Returns:
 ;;   A deme evolved through univariate optimization with the best-found instances.
 ; (: univariate (-> Deme (ITable $a) Number Number Number Number Cscore Deme))
-(= (univariate (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
-(let* (
-        ($maxGensTotal (informationTheoreticBits $disc))
-        ($popSize (ceilMath (* $popSizeRatio (pow-math $maxGensTotal 1.05))))
-        ($nSelect (floor-math (* $selectionRatio $popSize)))
-        ($nGenerate (floor-math (* $replacementRatio $popSize)))
-        ($randPopDeme (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet (generateInitialSample (Map.length $disc) $popSize)) $id))
-      ) 
-      (univariateOptimize $randPopDeme $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore (worstCscore))))
+; (= (univariate (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
+; (let* (
+;         ($maxGensTotal (informationTheoreticBits $disc))
+;         ($popSize (ceilMath (* $popSizeRatio (pow-math $maxGensTotal 1.05))))
+;         ($nSelect (floor-math (* $selectionRatio $popSize)))
+;         ($nGenerate (floor-math (* $replacementRatio $popSize)))
+;         ($randPopDeme (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet (generateInitialSample (Map.length $disc) $popSize)) $id))
+;       ) 
+;       (univariateOptimize $randPopDeme $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore (worstCscore))))
+
+(= (univariate $demeSpace $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
+   (if (is-space $demeSpace)
+       (let* (
+               ($disc (getDisk $demeSpace))
+               ($maxGensTotal (informationTheoreticBits $disc))
+               ($popSize (ceilMath (* $popSizeRatio (pow-math $maxGensTotal 1.05))))
+               ($nSelect (floor-math (* $selectionRatio $popSize)))
+               ($nGenerate (floor-math (* $replacementRatio $popSize)))
+               ($oldSet (match $demeSpace (mkSInstSet $insts) (mkSInstSet $insts)))
+               ($_ (remove-atom $demeSpace $oldSet))
+               ($_ (add-atom $demeSpace (mkSInstSet (generateInitialSample (Map.length $disc) $popSize))))
+             )
+             (univariateOptimize $demeSpace $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore (worstCscore)))
+       (Error $demeSpace "Invalid Deme")))
 
 
 
