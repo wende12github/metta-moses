@@ -105,3 +105,22 @@
 
 ;; ---- Caching ----
 !(add-atom &params (defaultCacheSize 60))
+
+;; ---- Initial population seeding ----
+;; seedMode: how the Generation 0 metapopulation is seeded.
+;;   default: single constant true tree (mkTree (mkNode true) ()).
+;;   llm: Gemini-powered warm-start initial population seeding.
+;; nLlmSeeds: number of candidate exemplars to synthesize via LLM.
+;; llmModel: Gemini model to use for synthesis (e.g. gemini-3.5-flash).
+!(add-atom &params (seedMode default))
+!(add-atom &params (nLlmSeeds 5))
+!(add-atom &params (llmModel "gemini-3.5-flash"))
+
+;; ---- Semantic mutation & variation ----
+;; mutationMode: how candidate programs are mutated during evolution.
+;;   default: classical knob variation & crossover.
+;;   llm: Gemini-powered semantic mutation and targeted error repair.
+;; nMutants: number of targeted mutated variants to synthesize per generation.
+!(add-atom &params (mutationMode default))
+!(add-atom &params (nMutants 3))
+
