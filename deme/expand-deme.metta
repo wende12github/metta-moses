@@ -127,6 +127,44 @@ $optimDeme
 ;;                   For clean boolean tables it's 0. The complexity penalty
 ;;                   is applied per-candidate during scoring, separate from
 ;;                   this termination check.
+;; Helper to build and score an exemplar from a mutated MeTTa S-expression
+(= (create-mutant-exemplar $expr $itable $cpxRatio $cache)
+   (let* (
+       ($tree (buildTree $expr))
+       ($bscore (scoreTree $itable $tree $cache))
+       ($cscore (getCscore $tree $cpxRatio $bscore))
+     )
+     (mkExemplar $tree (mkDemeId "llm-mutant") $cscore $bscore)))
+
+;; Generation-level semantic repair function
+(= (apply-semantic-mutation-if-needed $metaPop $context)
+   (if (or (== (param mutationMode) llm) (== (param mutationMode) "llm"))
+       (case $context
+         ((($prune-exemplar $fs-algo $truthTableBScore $itable)
+           (let* (
+               ($topExemplar (OS.getByIdx 0 $metaPop))
+               ($topTree (getExemplarTree $topExemplar))
+               ($topExpr (preOrder $topTree))
+               ($topScore (getExemplarCscore $topExemplar))
+               ($scoreVal (getScore $topScore))
+             )
+             (if (< $scoreVal 0)
+                 (let* (
+                     ($_ (println! (Applying LLM Semantic Mutation to repair: $topExpr)))
+                     ($prob (param problem))
+                     ($file (param inputFile))
+                     ($target (param targetFeature))
+                     ($n (param nMutants))
+                     ($model (param llmModel))
+                     ($mutantStr (py-call (llm_mutator.mutate_expression $topExpr $prob $file $target $n $model)))
+                     ($mutantExprs (parse $mutantStr))
+                     ($mutantExemplars (map-atom $mutantExprs $mexpr (create-mutant-exemplar $mexpr $itable (param complexityRatio) &bscoreCache)))
+                   )
+                   (foldl-atom $mutantExemplars $metaPop $acc $cand (OS.insert compareExemplar $cand $acc)))
+                 $metaPop)))
+          ($_ $metaPop)))
+       $metaPop))
+
 ; (: runMoses (-> Number Number (OS (Exemplar $a)) Number Number $Context $Optimize (OS (Exemplar $a))))
 ;; TODO: $nEval isn't being used. Increase it so that it works as expected.
 ;; To enable that, we may need to change our termination condition so that the generation is equivalent to the number of expansion as well.
@@ -148,9 +186,9 @@ $optimDeme
        ($updatedMetaPop (case $context
                         ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop)))
                         (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes ($nGames $opponentPolicy) $metaPop))))))       
-       ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))
-       ($top (OS.getByIdx 0 $metaPop))
-       ;; ($_ (println! (Top Exemplar before expansion: $top)))
+       ;; Hook LLM semantic mutation to repair suboptimal top candidates
+       ($postMutationMetaPop (apply-semantic-mutation-if-needed $updatedMetaPop $context))
+       ($top (OS.getByIdx 0 $postMutationMetaPop))
        ($topScore (getExemplarCscore $top))
        ;; ($_ (println! (topscore: $topScore)))
        ;; ($_ (println! (Top: $topScore Max: $maxScore (cScore>= $topScore $maxScore))))
@@ -162,10 +200,10 @@ $optimDeme
  ;; scalar `$maxScore`. The Cscore's complexity / penalty fields are
  ;; consulted elsewhere when ranking candidates but not at termination.
  (if (>= (getScore $topScore) $maxScore)
-         (if (<= (param maxCandOutput) (OS.length $updatedMetaPop))
-             (OS.getTopN (param maxCandOutput) $updatedMetaPop)
-             $updatedMetaPop)
-         (runMoses (- $maxGen 1) $maxScore $updatedMetaPop (+ $nExpansion 1) $nDeme $context $optimize)))))
+         (if (<= (param maxCandOutput) (OS.length $postMutationMetaPop))
+             (OS.getTopN (param maxCandOutput) $postMutationMetaPop)
+             $postMutationMetaPop)
+         (runMoses (- $maxGen 1) $maxScore $postMutationMetaPop (+ $nExpansion 1) $nDeme $context $optimize)))))
 
 
 ;; Some helpers specific to final testing
