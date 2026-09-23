@@ -86,25 +86,39 @@
 ;;   $context: Scoring context (ITable for Boolean, tuple for Strategy)
 ;;   $optimize: Optimizer function
 ;; Returns: Optimized deme with scored instances
-(= (getDscMpFromRep (mkRep (mkKbMap $kbMap (mkDscMp $disc)) $tree)) $disc)
-(= (getDscMpFromRep (mkRep (mkKbMap (mkDscMp $disc)) $tree)) $disc)
+; (= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId) $context $optimize)
+; (let*
+; (
+;     ($lengthOfDscKbMp (Map.length $dscKbMp))
+;     ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
+;     ($generatedList (createInitialInstance $dscKbMp))
+;     ($_ (println! (GeneratedList: $generatedList)))
+;     ($deme (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId))
+;     ;; ($_ (println! (Rep: (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
+;     ;; ($_ (println! "Optimizing Deme"))
+;     (($inst $optimDeme $state) (optimizeDemes $deme $context (mkInst $generatedList) $optimize))
+; )
+; $optimDeme
+; ))
 
 (= (expandDemeSpaceHelper $demeSpace $context $optimize)
 (let*
 (
-    ($rep (match $demeSpace (mkRep $kbMp $updatedTree) (mkRep $kbMp $updatedTree)))
-    ($dscKbMp (getDscMpFromRep $rep))
+   ;  ($lengthOfDscKbMp (Map.length $dscKbMp))
+    ((mkKbMap (mkDscMp $dscKbMp)) (match $demeSpace (mkRep $kbMp $updatedTree) $kbMp))
     ($lengthOfDscKbMp (Map.length $dscKbMp))
     ($_ (println! ("length of dscKbMp:" $lengthOfDscKbMp)))
     ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
     ($generatedList (createInitialInstance $dscKbMp))
     ($_ (println! ("generated list:" $generatedList)))
+   ;  ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
     ;; ($_ (println! (Rep: (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
     ;; ($_ (println! "Optimizing Deme"))
     (($inst $optimDeme $state) (optimizeDemes $demeSpace $context (mkInst $generatedList) $optimize))
 )
 $optimDeme
 ))
+
 ;; The main loop
 ;; Takes 2 termination criterias:
 ;;     - $maxGen : how many times we want the loop to run
