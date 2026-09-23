@@ -256,6 +256,39 @@
       )
       ()))
 
+;; Helper to build and score an exemplar from a MeTTa S-expression
+(= (create-seed-exemplar $expr $itable $cpxRatio $cache)
+   (let* (
+       ($tree (buildTree $expr))
+       ($bscore (scoreTree $itable $tree $cache))
+       ($cscore (getCscore $tree $cpxRatio $bscore))
+     )
+     (mkExemplar $tree (mkDemeId "1") $cscore $bscore)))
+
+;; Generates initial metapopulation either via default (single true node) or LLM seeder
+(= (generate-initial-metapop $itable $cpxPen $worstScore $ctor $worstBScore)
+   (if (not (or (== (param seedMode) llm) (== (param seedMode) "llm")))
+       ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") 
+                    (mkCscore $worstScore 0 $cpxPen 0 $worstScore) 
+                    ($ctor $worstBScore)))
+       (let* (
+           ($prob (param problem))
+           ($file (param inputFile))
+           ($target (param targetFeature))
+           ($n (param nLlmSeeds))
+           ($model (param llmModel))
+           ($_ (println! (Seeding initial metapopulation via LLM: $model)))
+           ($rawStr (py-call (llm_seeder.generate_seed_expressions $prob $file $target $n $model)))
+           ($parsedExprList (parse $rawStr))
+           ($exemplars (map-atom $parsedExprList $x (create-seed-exemplar $x $itable $cpxPen &bscoreCache)))
+           ($metaPop (foldl-atom $exemplars () $acc $cand (OS.insert compareExemplar $cand $acc)))
+         )
+         (if (== $metaPop ())
+             ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") 
+                          (mkCscore $worstScore 0 $cpxPen 0 $worstScore) 
+                          ($ctor $worstBScore)))
+             $metaPop))))
+
 (= (moses-run)
    (let*
       (
@@ -283,7 +316,7 @@
         ($worstPossibleScore (List.sum $worstPossibleBScore))
         ($bestPosssibleScore (getBestPossibleScore))
         ($_ (println! (BestPossibleScore: $bestPosssibleScore)))
-        ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
+        ($metaPop (generate-initial-metapop $itable $cpxPen $worstPossibleScore $ctor $worstPossibleBScore))
         ($result (runMoses $maxGen $bestPosssibleScore $metaPop 0 $nDeme
               (False $fsAlgo $truthTableBScore $itable)
               $optimizer))
