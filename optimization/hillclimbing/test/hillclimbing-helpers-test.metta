@@ -220,10 +220,11 @@
 ) True)
 
 ;; deme for strategy hill climbing using demeSpace
+; INFO: Uncomment once the strategy refactor is done.
 !(add-atom &stratDeme 
   (mkRep 
     (mkKbMap 
-      (mkDscKbMp (((mkNodeId (1)) 0) ((mkNodeId (2)) 1)))
+      ; (mkDscKbMp (((mkNodeId (1)) 0) ((mkNodeId (2)) 1)))
       (mkDscMp 
         (((mkDiscSpec 2) 
             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
