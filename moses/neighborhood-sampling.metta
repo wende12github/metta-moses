@@ -347,9 +347,6 @@
 ;;   $centerInst: Reference instance for distance calculations.
 ;;   $deme: Deme
 ;;   $dist: Distance from $centerInst for sampling/generating instances.
-(= (getDscMpFromRep (mkRep (mkKbMap $kbMap (mkDscMp $disc)) $tree)) $disc)
-(= (getDscMpFromRep (mkRep (mkKbMap (mkDscMp $disc)) $tree)) $disc)
-
 ;; Returns:
 ;;   (Deme Number) - Tuple of updated Deme with new scored instances appended and number of new instances added.
 ;; (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
@@ -360,16 +357,15 @@
     ;; ($_ (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
     ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
     ;; ($_ (println! ""))
-    ($rep (match $demeSpace (mkRep $repKbMp $tree) (mkRep $repKbMp $tree)))
-    ($disc (getDscMpFromRep $rep))
+    ((mkKbMap (mkDscMp $disc)) (match $demeSpace (mkRep $kbMp $tree) $kbMp))
     ; ($_ (println! (Disc: $disc)))
     ; ($_ (println! (getbyindex: (MultiMap.getByIdx 0 $disc))))
     (($spec $knob) (MultiMap.getByIdx 0 $disc))
     ((mkMultip $m) (getKnobMultip $knob))
-    ($knobMap (mkKbMap (mkDscMp $disc)))
+    ($kbMp (mkKbMap (mkDscMp $disc)))
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
-             (countNeighborhood $knobMap $centerInst $dist $numNewInstances)
+             (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
              $totalNeighbors))
     ;; ($_ (println! (updatedTotalNeighbors: $updatedTotalNeighbors)))
     ($updatedNumNewInstances 
@@ -379,7 +375,7 @@
     ;; ($_ (println! (Inside sampleNewInstances: (< $numNewInstances $updatedTotalNeighbors) Neighbors: $updatedTotalNeighbors numNewInstances: $numNewInstances Distance: $dist)))
     ;; ($_ (println! (Sampling:  (< $numNewInstances $updatedTotalNeighbors) CenterInst: $centerInst Distance: $dist)))
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
-                       (sampleFromNeighborhood $numNewInstances $dist $knobMap $centerInst)
+                       (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
                        ;; (swapList (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))) ;; INFO: Used to improve result but not needed any more
                        (generateAllInNeighborhoodForDisc (mkDscMp $disc) $centerInst $dist)))
     ;; ($_ (println! (NewInstances: $newInstances)))
