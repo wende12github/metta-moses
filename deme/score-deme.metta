@@ -52,7 +52,6 @@
                         (
                           ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
                           (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ()))
-                          (($nGames strategy) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ()))
                         )))
           )
   (mkSInstSet $scored)))
